@@ -1,0 +1,30 @@
+[build-system]
+requires = [
+    "setuptools>=71",
+    "wheel",
+    "cmake>=3.18",
+    "pybind11>=2.12",
+    # The isolated PEP 517 build needs the same C++ Pinocchio headers and
+    # cmeel prefix that the runtime wheel declares as its dependency.
+    "pin>=3.4.0,<5.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "libpytianji"
+version = "0.1.3"
+description = "Native C++ real-time planner and SDK bridge for Tianji Marvin arms"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+# The native extension links the Pinocchio C++ runtime that is also commonly
+# used by other robotics packages.  ``setup_env.sh`` installs the wheel with
+# ``--no-deps`` after checking the active environment, but keeping the runtime
+# dependency in the wheel metadata makes ordinary installs self-describing.
+dependencies = ["pin>=3.4.0,<5.0.0"]
+
+[tool.setuptools]
+packages = ["libpytianji"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+libpytianji = ["_native*.so", "libKine.so", "libMarvinSDK.so", "*.MvKDCfg", "urdf/*.urdf", "meshes/*.STL"]

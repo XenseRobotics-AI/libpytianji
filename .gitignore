@@ -1,0 +1,7 @@
+build/
+dist/
+*.egg-info/
+libpytianji/_native*.so
+libpytianji/libKine.so
+libpytianji/libMarvinSDK.so
+libpytianji/*.MvKDCfg
