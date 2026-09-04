@@ -86,10 +86,6 @@ LIBPYTIANJI_VENDOR_LOG=1 lerobot-teleoperate ...
 
 `LIBPYTIANJI_VENDOR_KINE_LOG=1` remains accepted as a compatibility alias.
 
-The VR adapter separately warns when a fresh controller sample is more than
-`source_gap_warning_threshold_ms` late (100 ms by default).  This warning is
-diagnostic only; it does not re-anchor or modify the target.
-
 ## Hardware-free model sandbox
 
 The LeRobot package exposes a lightweight MeshCat + Qt FK/IK viewer for the

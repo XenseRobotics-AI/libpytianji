@@ -99,9 +99,16 @@ if(NOT EXISTS "${LIBPYTIANJI_PINOCCHIO_PREFIX}/include/pinocchio" OR
 message(FATAL_ERROR "Invalid Pinocchio prefix: ${LIBPYTIANJI_PINOCCHIO_PREFIX}")
 endif()
 
-set(TIANJI_EIGEN_INCLUDE_DIR "/usr/include/eigen3")
-if(NOT EXISTS "${TIANJI_EIGEN_INCLUDE_DIR}/Eigen/Core")
-  set(TIANJI_EIGEN_INCLUDE_DIR "/home/olorin/rdk_install/include/eigen3")
+set(TIANJI_EIGEN_INCLUDE_DIR "" CACHE PATH
+    "Directory containing Eigen/Core")
+if(NOT TIANJI_EIGEN_INCLUDE_DIR AND
+   DEFINED ENV{TIANJI_EIGEN_INCLUDE_DIR} AND
+   NOT "$ENV{TIANJI_EIGEN_INCLUDE_DIR}" STREQUAL "")
+  set(TIANJI_EIGEN_INCLUDE_DIR "$ENV{TIANJI_EIGEN_INCLUDE_DIR}")
+endif()
+if(NOT TIANJI_EIGEN_INCLUDE_DIR AND
+   EXISTS "/usr/include/eigen3/Eigen/Core")
+  set(TIANJI_EIGEN_INCLUDE_DIR "/usr/include/eigen3")
 endif()
 if(NOT EXISTS "${TIANJI_EIGEN_INCLUDE_DIR}/Eigen/Core")
   set(TIANJI_EIGEN_INCLUDE_DIR "${LIBPYTIANJI_PINOCCHIO_PREFIX}/include")
