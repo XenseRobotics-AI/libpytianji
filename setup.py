@@ -162,11 +162,11 @@ class CMakeBuild(build_ext):
             cmake_args.append(f"-DPython3_LIBRARY={python_library}")
         # CMake is configured from its temporary build directory.  Resolve a
         # caller-provided relative SDK path before handing it to CMake; a
-        # relative ``TIANJI_SDK_ROOT=third_party/tianji_arm`` otherwise gets
+        # relative ``TIANJI_SDK_ROOT=third_party/libpytianji/vendor/tianji_arm`` otherwise gets
         # interpreted relative to ``build/temp...`` and makes wheel builds
         # fail after a reboot or from a different working directory.
         vendor_value = pathlib.Path(
-            os.environ.get("TIANJI_SDK_ROOT", str(source_dir.parent / "tianji_arm"))
+            os.environ.get("TIANJI_SDK_ROOT", str(source_dir / "vendor" / "tianji_arm"))
         ).expanduser()
         if vendor_value.is_absolute():
             vendor_root = vendor_value.resolve()

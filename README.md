@@ -15,7 +15,7 @@ calculation chain out of Python:
   trajectories, cancellation, and emergency stop.
 
 The package links the headers and shared libraries in the sibling vendor
-checkout `third_party/tianji_arm`, plus the C++ Pinocchio runtime used by the
+nested `vendor/tianji_arm` checkout, plus the C++ Pinocchio runtime used by the
 native Pink migration. Its model/task code is independent of `tron2-ik`; that
 project is only the reference for translating Pink's Python control flow into
 a deterministic C++ RT loop. The wheel includes the Tianji runtime libraries,

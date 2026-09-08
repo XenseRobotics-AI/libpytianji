@@ -1,0 +1,4 @@
+[submodule "vendor/tianji_arm"]
+	path = vendor/tianji_arm
+	url = git@github.com:XenseRobotics-AI/tianji_arm.git
+	branch = dev/olorin

@@ -31,7 +31,7 @@ if(NOT pybind11_DIR)
 endif()
 find_package(pybind11 CONFIG REQUIRED)
 
-set(TIANJI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../tianji_arm" CACHE PATH
+set(TIANJI_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vendor/tianji_arm" CACHE PATH
     "Tianji vendor SDK root")
 set(TIANJI_LIB_DIR "${TIANJI_ROOT}/SDK_PYTHON" CACHE PATH
     "Directory containing libKine.so and libMarvinSDK.so")
