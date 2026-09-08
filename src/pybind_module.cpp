@@ -205,7 +205,11 @@ PYBIND11_MODULE(_native, module) {
                   bool enable_inter_arm_distance_check,
                   double min_tcp_distance_m,
                   const py::handle &pd_joint_stiffness,
-                  const py::handle &pd_joint_damping) {
+                  const py::handle &pd_joint_damping,
+                  const py::handle &left_tool_kine,
+                  const py::handle &left_tool_dyn,
+                  const py::handle &right_tool_kine,
+                  const py::handle &right_tool_dyn) {
                  return new NativeTianjiController(
                      robot_ip, kinematics_config_path, planner_hz, io_hz,
                      command_timeout_s, max_tcp_linear_velocity_m_s,
@@ -221,7 +225,11 @@ PYBIND11_MODULE(_native, module) {
                      toVec3(workspace_max_m, "workspace_max_m"),
                      enable_inter_arm_distance_check, min_tcp_distance_m,
                      toArm(pd_joint_stiffness, "pd_joint_stiffness"),
-                     toArm(pd_joint_damping, "pd_joint_damping"));
+                     toArm(pd_joint_damping, "pd_joint_damping"),
+                     toArray<double, 6>(left_tool_kine, "left_tool_kine"),
+                     toArray<double, 10>(left_tool_dyn, "left_tool_dyn"),
+                     toArray<double, 6>(right_tool_kine, "right_tool_kine"),
+                     toArray<double, 10>(right_tool_dyn, "right_tool_dyn"));
                }),
            py::arg("robot_ip"), py::arg("kinematics_config_path"),
            py::arg("planner_hz") = 300, py::arg("io_hz") = 1000,
@@ -243,7 +251,11 @@ PYBIND11_MODULE(_native, module) {
            py::arg("enable_inter_arm_distance_check") = false,
            py::arg("min_tcp_distance_m") = 0.18,
            py::arg("pd_joint_stiffness") = NativeTianjiController::DefaultJointStiffness(),
-           py::arg("pd_joint_damping") = NativeTianjiController::DefaultJointDamping())
+           py::arg("pd_joint_damping") = NativeTianjiController::DefaultJointDamping(),
+           py::arg("left_tool_kine") = std::array<double, 6>{},
+           py::arg("left_tool_dyn") = std::array<double, 10>{},
+           py::arg("right_tool_kine") = std::array<double, 6>{},
+           py::arg("right_tool_dyn") = std::array<double, 10>{})
       .def("start", &NativeTianjiController::start,
            "Start native planner and SDK I/O threads.",
            py::call_guard<py::gil_scoped_release>())

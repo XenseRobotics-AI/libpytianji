@@ -165,7 +165,11 @@ public:
       bool enable_inter_arm_distance_check = false,
       double min_tcp_distance_m = 0.18,
       ArmVector pd_joint_stiffness = DefaultJointStiffness(),
-      ArmVector pd_joint_damping = DefaultJointDamping());
+      ArmVector pd_joint_damping = DefaultJointDamping(),
+      std::array<double, 6> left_tool_kine = {},
+      std::array<double, 10> left_tool_dyn = {},
+      std::array<double, 6> right_tool_kine = {},
+      std::array<double, 10> right_tool_dyn = {});
   ~NativeTianjiController();
 
   NativeTianjiController(const NativeTianjiController &) = delete;
@@ -284,6 +288,10 @@ private:
   bool simulate_{false};
   ArmVector pd_joint_stiffness_{};
   ArmVector pd_joint_damping_{};
+  std::array<double, 6> left_tool_kine_{};
+  std::array<double, 10> left_tool_dyn_{};
+  std::array<double, 6> right_tool_kine_{};
+  std::array<double, 10> right_tool_dyn_{};
 
   std::atomic<bool> running_{false};
   std::atomic<bool> stop_requested_{false};

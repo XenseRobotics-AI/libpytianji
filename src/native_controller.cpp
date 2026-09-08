@@ -242,7 +242,11 @@ NativeTianjiController::NativeTianjiController(
     std::array<double, 3> workspace_min_m,
     std::array<double, 3> workspace_max_m,
     bool enable_inter_arm_distance_check, double min_tcp_distance_m,
-    ArmVector pd_joint_stiffness, ArmVector pd_joint_damping)
+    ArmVector pd_joint_stiffness, ArmVector pd_joint_damping,
+    std::array<double, 6> left_tool_kine,
+    std::array<double, 10> left_tool_dyn,
+    std::array<double, 6> right_tool_kine,
+    std::array<double, 10> right_tool_dyn)
     : robot_ip_(std::move(robot_ip)),
       kinematics_config_path_(std::move(kinematics_config_path)),
       planner_hz_(planner_hz), io_hz_(io_hz),
@@ -263,7 +267,9 @@ NativeTianjiController::NativeTianjiController(
       realtime_priority_(realtime_priority), cpu_affinity_(cpu_affinity),
       simulate_(simulate),
       pd_joint_stiffness_(pd_joint_stiffness),
-      pd_joint_damping_(pd_joint_damping) {
+      pd_joint_damping_(pd_joint_damping),
+      left_tool_kine_(left_tool_kine), left_tool_dyn_(left_tool_dyn),
+      right_tool_kine_(right_tool_kine), right_tool_dyn_(right_tool_dyn) {
   if (planner_hz_ < 1 || planner_hz_ > 1000 || io_hz_ < 1 || io_hz_ > 2000 ||
       io_hz_ < planner_hz_) {
     throw std::invalid_argument("planner_hz/io_hz are outside supported range");
@@ -1979,6 +1985,16 @@ void NativeTianjiController::ioLoop() {
       // ally on the first call.
       auto configure_arm = [&](char arm, std::size_t arm_index) -> bool {
         const auto deadline = nowNs() + kStartupTimeoutNs;
+        const auto &tool_kine = arm_index == 0 ? left_tool_kine_ : right_tool_kine_;
+        const auto &tool_dyn = arm_index == 0 ? left_tool_dyn_ : right_tool_dyn_;
+        double kine[6]{};
+        double dyn[10]{};
+        std::copy(tool_kine.begin(), tool_kine.end(), kine);
+        std::copy(tool_dyn.begin(), tool_dyn.end(), dyn);
+        if (!simulate_ && !SetTool(arm, kine, dyn)) {
+          setFault(3, "Marvin SDK tool parameter configuration failed");
+          return false;
+        }
         while (nowNs() < deadline && !stop_requested_.load(std::memory_order_acquire)) {
           DCSS dcss{};
           if (!OnGetBuf(&dcss)) {
