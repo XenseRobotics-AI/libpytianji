@@ -1443,6 +1443,18 @@ void NativeTianjiController::plannerLoop() {
         mode_.store(ControllerMode::Streaming, std::memory_order_release);
         active_trajectory_seq_ = 0;
       }
+      // ``tcp_left`` / ``tcp_right`` are published from ``planner_pose_``.
+      // Keep them synchronized with the joint trajectory instead of leaving
+      // the Cartesian state at the pose where Home started.  Python uses this
+      // state to re-anchor Pico4 after reset; publishing the stale start pose
+      // makes the next enable command drive the arm back before reset.
+      for (std::size_t arm = 0; arm < kArmCount; ++arm) {
+        ArmVector trajectory_arm{};
+        for (std::size_t joint = 0; joint < kArmDof; ++joint) {
+          trajectory_arm[joint] = planner_q_[arm * kArmDof + joint];
+        }
+        planner_pose_[arm] = fkArm(arm, trajectory_arm);
+      }
     } else {
       CartesianTarget target{};
       const bool have_target = readLatestTarget(target);
