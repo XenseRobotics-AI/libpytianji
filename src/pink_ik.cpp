@@ -180,6 +180,19 @@ SE3 pose(double x, double y, double z, double roll, double pitch,
   return SE3(rpy(roll, pitch, yaw), Eigen::Vector3d(x, y, z));
 }
 
+SE3 toolPose(const PinkToolKine &values) {
+  // Match Marvin's FX_XYZABC2Matrix4DEG exactly: XYZ are millimetres and
+  // ABC are fixed-axis XYZ angles in degrees (Rz(C) * Ry(B) * Rx(A)).
+  constexpr double kMillimetresToMetres = 1.0e-3;
+  constexpr double kDegreesToRadians = kPi / 180.0;
+  return pose(values[0] * kMillimetresToMetres,
+              values[1] * kMillimetresToMetres,
+              values[2] * kMillimetresToMetres,
+              values[3] * kDegreesToRadians,
+              values[4] * kDegreesToRadians,
+              values[5] * kDegreesToRadians);
+}
+
 SE3 poseFromArray(const PinkPose &values) {
   Eigen::Matrix4d matrix = Eigen::Matrix4d::Identity();
   for (int row = 0; row < 4; ++row) {
@@ -251,7 +264,7 @@ struct PinkIKModel::ArmModel {
 };
 
 std::unique_ptr<PinkIKModel::ArmModel> PinkIKModel::buildArmModel(
-    std::size_t arm) {
+    std::size_t arm, const PinkToolKine &tool_kine) {
   if (arm >= 2) {
     throw std::invalid_argument("Pink IK arm index must be 0 or 1");
   }
@@ -288,7 +301,12 @@ std::unique_ptr<PinkIKModel::ArmModel> PinkIKModel::buildArmModel(
       pose(0.0, 0.0, 0.0, 1.5708, -1.5708, 0.0),
       pose(0.0, 0.0, 0.0, 1.5708, -1.5708, 0.0),
   }};
-  const SE3 tcp_origin = pose(0.0, -0.095, 0.0, 1.5708, -1.5708, 0.0);
+  // The 95 mm fixed placement from the CAD/URDF terminates at the factory
+  // flange center.  Marvin tool_kine is the additional flange-to-tool-TCP
+  // transform, so zero tool_kine preserves the historical flange TCP.
+  const SE3 flange_origin =
+      pose(0.0, -0.095, 0.0, 1.5708, -1.5708, 0.0);
+  const SE3 tcp_origin = flange_origin * toolPose(tool_kine);
 
   pinocchio::JointIndex parent = 0;
   for (std::size_t index = 0; index < 7; ++index) {
@@ -350,10 +368,20 @@ void PinkIKModel::validateOptions(const PinkIKOptions &options) {
   }
 }
 
-PinkIKModel::PinkIKModel(PinkIKOptions options) : options_(options) {
+PinkIKModel::PinkIKModel(PinkIKOptions options)
+    : PinkIKModel(PinkToolKine{}, PinkToolKine{}, options) {}
+
+PinkIKModel::PinkIKModel(const PinkToolKine &left_tool_kine,
+                         const PinkToolKine &right_tool_kine,
+                         PinkIKOptions options)
+    : options_(options) {
   validateOptions(options_);
-  arms_[0] = buildArmModel(0);
-  arms_[1] = buildArmModel(1);
+  if (!std::all_of(left_tool_kine.begin(), left_tool_kine.end(), finite) ||
+      !std::all_of(right_tool_kine.begin(), right_tool_kine.end(), finite)) {
+    throw std::invalid_argument("Pink tool kinematics must be finite");
+  }
+  arms_[0] = buildArmModel(0, left_tool_kine);
+  arms_[1] = buildArmModel(1, right_tool_kine);
 }
 
 PinkIKModel::~PinkIKModel() = default;

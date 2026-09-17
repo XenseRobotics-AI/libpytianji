@@ -295,7 +295,9 @@ NativeTianjiController::NativeTianjiController(
   if (!allFinite(workspace_min_m_) || !allFinite(workspace_max_m_) ||
       !allFinite(left_joint_min_rad_) || !allFinite(left_joint_max_rad_) ||
       !allFinite(right_joint_min_rad_) || !allFinite(right_joint_max_rad_) ||
-      !allFinite(pd_joint_stiffness_) || !allFinite(pd_joint_damping_)) {
+      !allFinite(pd_joint_stiffness_) || !allFinite(pd_joint_damping_) ||
+      !allFinite(left_tool_kine_) || !allFinite(left_tool_dyn_) ||
+      !allFinite(right_tool_kine_) || !allFinite(right_tool_dyn_)) {
     throw std::invalid_argument("native planner arrays must be finite");
   }
   for (std::size_t i = 0; i < 3; ++i) {
@@ -1033,7 +1035,10 @@ void NativeTianjiController::initializePlannerKinematics() {
   // is touched from the planner thread; this is libpytianji's own native
   // Pinocchio task solver.
   try {
-    pink_ik_ = std::make_unique<PinkIKModel>();
+    // tool_kine is the single source of truth for both the controller-side
+    // SetTool call and the independent Pink FK/IK task frame.
+    pink_ik_ = std::make_unique<PinkIKModel>(left_tool_kine_,
+                                             right_tool_kine_);
   } catch (const std::exception &error) {
     throw std::runtime_error(std::string("Pink/Pinocchio Tianji model initialization failed: ") +
                              error.what());

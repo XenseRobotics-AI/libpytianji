@@ -34,7 +34,7 @@ For a wheel that has already been built (or published to an internal index),
 installation is the ordinary Python package flow:
 
 ```bash
-python -m pip install libpytianji-0.1.3-*.whl
+python -m pip install libpytianji-0.1.4-*.whl
 ```
 
 This installs the `pin` runtime declared in the package metadata and places
@@ -112,3 +112,9 @@ model = libpytianji.PinkIKModel()
 print(libpytianji.IK_BACKEND, model.forward_kinematics(0, [0.0] * 7)[3::4])
 PY
 ```
+
+`NativeTianjiController` uses each arm's `tool_kine` as the single TCP
+definition for both Marvin `SetTool` and the native Pink/Pinocchio FK/IK
+frame. The convention is flange-relative
+`[x_mm, y_mm, z_mm, A_deg, B_deg, C_deg]`, with
+`R = Rz(C) * Ry(B) * Rx(A)`. A zero vector selects the factory flange center.

@@ -12,6 +12,9 @@ namespace libpytianji {
 // vendor SDK types: no SDK object is ever passed to the Pinocchio solver.
 using PinkPose = std::array<double, 16>;
 using PinkArmVector = std::array<double, 7>;
+// Marvin's public tool convention: flange-relative [x, y, z, A, B, C]
+// with translation in millimetres and fixed-axis XYZ angles in degrees.
+using PinkToolKine = std::array<double, 6>;
 
 struct PinkIKDiagnostics {
   bool success{false};
@@ -52,6 +55,9 @@ struct PinkIKOptions {
 class PinkIKModel {
  public:
   explicit PinkIKModel(PinkIKOptions options = {});
+  PinkIKModel(const PinkToolKine &left_tool_kine,
+              const PinkToolKine &right_tool_kine,
+              PinkIKOptions options = {});
   ~PinkIKModel();
 
   PinkIKModel(const PinkIKModel &) = delete;
@@ -75,7 +81,8 @@ class PinkIKModel {
  private:
   struct ArmModel;
 
-  static std::unique_ptr<ArmModel> buildArmModel(std::size_t arm);
+  static std::unique_ptr<ArmModel> buildArmModel(
+      std::size_t arm, const PinkToolKine &tool_kine);
   static void validateOptions(const PinkIKOptions &options);
   static bool validPose(const PinkPose &pose) noexcept;
   static bool finiteVector(const PinkArmVector &values) noexcept;

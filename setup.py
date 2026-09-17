@@ -293,7 +293,7 @@ class build_py(_build_py):
 
 setup(
     name="libpytianji",
-    version="0.1.3",
+    version="0.1.4",
     packages=find_packages(include=["libpytianji"]),
     ext_modules=[CMakeExtension("libpytianji._native")],
     cmdclass={"build_ext": CMakeBuild, "build_py": build_py},

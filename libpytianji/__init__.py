@@ -80,7 +80,7 @@ except ImportError as _native_error:  # pragma: no cover - depends on install
     ControllerMode = None  # type: ignore[assignment,misc]
     API_VERSION = 0
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 __all__ = [
     "API_VERSION",

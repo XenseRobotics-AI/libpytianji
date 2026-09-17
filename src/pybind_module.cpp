@@ -101,7 +101,8 @@ PYBIND11_MODULE(_native, module) {
   // Version 6 replaces the vendor analytical IK/FK calls in the planner with
   // the native Pink/Pinocchio backend.  Refuse an older wheel rather than
   // silently running the old branch-selecting solver on a new adapter.
-  module.attr("API_VERSION") = 6;
+  // Version 7 makes tool_kine the shared SDK and Pink TCP definition.
+  module.attr("API_VERSION") = 7;
   module.attr("IK_BACKEND") = PinkIKModel::backendName();
 
   // Hardware-free diagnostics for the exact native model used by the
@@ -110,6 +111,14 @@ PYBIND11_MODULE(_native, module) {
   // socket.
   py::class_<PinkIKModel>(module, "PinkIKModel")
       .def(py::init<>())
+      .def(py::init(
+               [](const py::handle &left_tool_kine,
+                  const py::handle &right_tool_kine) {
+                 return new PinkIKModel(
+                     toArray<double, 6>(left_tool_kine, "left_tool_kine"),
+                     toArray<double, 6>(right_tool_kine, "right_tool_kine"));
+               }),
+           py::arg("left_tool_kine"), py::arg("right_tool_kine"))
       .def_static("backend_name", &PinkIKModel::backendName)
       .def("forward_kinematics",
            [](const PinkIKModel &model, std::size_t arm,
