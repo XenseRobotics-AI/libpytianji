@@ -23,20 +23,20 @@ struct PinkIKDiagnostics {
   double orientation_error{0.0};
 };
 
-// Streaming defaults intentionally match libtron2rt's mapping of Pink
-// options into tron2-ik's native solver: a warm-started 200/300 Hz Cartesian
-// stream needs bounded latency rather than offline, sub-micron convergence.
+// Streaming defaults for the Tianji model. Damping is the Hessian diagonal
+// coefficient (lambda squared in damped-least-squares notation). A reduced
+// task gain moderates each linearized correction near wrist singularities.
 struct PinkIKOptions {
-  int max_iterations{80};
+  int max_iterations{500};
   double dt{0.1};
-  double damping{1.0e-4};
+  double damping{1.0e-3};
   double step_size{1.0};
   double max_step_norm{0.15};
   double position_tolerance{1.0e-4};
   double orientation_tolerance{1.0e-3};
   double position_cost{1.0};
   double orientation_cost{1.0};
-  double frame_gain{1.0};
+  double frame_gain{0.5};
   // Pink/tron2-ik leave the posture task disabled by default.  The previous
   // 1e-3 regularizer biased small Cartesian updates enough to miss the
   // 1e-4 m streaming tolerance; continuity comes from the warm-start seed and

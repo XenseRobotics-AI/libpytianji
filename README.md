@@ -103,6 +103,38 @@ teleoperation uses the independent native `pink-pinocchio-native` backend; it
 does not invoke Python Pink/qpsolvers or acquire the Python GIL in the 300 Hz
 planner.
 
+The native IK allows up to 500 iterations per arm and exits early once both
+position error is at most 0.1 mm and orientation error is at most 0.001 rad.
+Each velocity QP retains its 64-iteration active-set limit and existing
+joint-position and velocity bounds. The IK iteration limit is a C++ default,
+not a Python constructor option; changing it requires rebuilding the extension.
+This is an iteration budget, not a wall-clock deadline: difficult or unreachable
+targets can consume the full budget, so check dual-arm planner timing at 300 Hz.
+
+The Tianji streaming defaults use a Hessian damping coefficient of `1e-3`
+(the `lambda^2` term in damped least squares) and a frame gain of `0.5`.
+These penalize large joint velocities and moderate each linearized correction.
+They do not impose an acceleration limit or guarantee continuity across IK
+failures. Position/orientation tolerances and the physical safety gates are
+unchanged. The values are model-specific tuning, not published cross-wrist
+constants. Sources for the method:
+
+- [Pink task gain and damping](https://github.com/stephane-caron/pink/blob/main/pink/tasks/task.py)
+- [Pink global Tikhonov regularization](https://github.com/stephane-caron/pink/blob/main/pink/solve_ik.py)
+- [Robotics Toolbox LM damping methods](https://github.com/petercorke/robotics-toolbox-python/blob/main/src/roboticstoolbox/robot/IK.py)
+
+Run `python third_party/libpytianji/benchmarks/ik_singularity.py` from the
+repository root to compare rebuilt versions without connecting hardware.
+The 600-waypoint extended-arm stress case includes infeasible targets and
+models only numerical IK plus output velocity clipping, not full control.
+On the development machine, increasing damping from `1e-4` to `1e-3` and
+reducing gain from `1` to `0.5` reduced joint-increment-change RMS from about
+0.0787 to 0.0532 degrees and the maximum from 1.20 to 0.616 degrees on both
+arms. Failures remained comparable (177 versus 178 of 600); this does not
+establish hardware safety or eliminate singularity failures. Ordinary bent-arm
+tracking retained the 0.1 mm tolerance with no failures. A trial of relaxed
+convergence tolerances was rejected because it increased stop/start motion.
+
 To validate the exact production model after a wheel install:
 
 ```bash
